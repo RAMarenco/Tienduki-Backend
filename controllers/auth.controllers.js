@@ -2,13 +2,14 @@ const {Users} = require("../model/user.model");
 const debug = require("debug")("app:auth-controller");
 const Rol = require("../model/rol.model");
 const StoreCategory = require("../model/storeCategory.model");
+const StoreCategorie = require("../model/storeCategorie.model");
 
 const controller = {};
 
 controller.registerVentor = async (req, res) => {
   try {
-    const { username, lastname, name, datebirth, gender, email, password, category, id_rol } = req.body;
-
+    const {username, email, password, category} = req.body;
+  
     const user = await Users.findOne({
       $or: [{ username: username }, { email: email }],
     });
@@ -17,30 +18,41 @@ controller.registerVentor = async (req, res) => {
       return res.status(409).json({ error: "Este usuario ya existe" });
     }
 
+    //Se crear el usuario tienda
     const newUser = new Users({
       username: username,
-      name: name,
-      lastname: lastname,
-      datebirth: datebirth,
-      gender: gender,
+      name: username,
+      lastname: username,
+      datebirth: Date.now(),
+      gender: "Tienda",
       email: email,
       password: password,
-      id_rol: id_rol
+      id_rol: "637d209f43311e1bfa18b7b2"
     });
 
-    
     const guardar = await newUser.save();
 
-    if(id_rol === "637d209f43311e1bfa18b7b2"){
-       let storecategory = await StoreCategory.findOne({}).where({category: category});
-       storecategory.stores = storecategory.stores.concat(newUser._id);
-       await storecategory.save();
-    }
+    // Se debe de buscar el id_store_category
+    const buscar = await StoreCategory.findOne({category: category});
+
+
+    // Creando campo en store_categories
+    const newStoreCategories = new StoreCategorie({
+      id_store: guardar._id,
+      id_store_category: buscar._id,
+    })
+
+    const guardar2 = await newStoreCategories.save();
+
+    // Se guarda la tienda en la categoria que pertenece
+    let storecategory = await StoreCategory.findOne({}).where({category: category});
+    storecategory.stores = storecategory.stores.concat(newUser._id);
+    await storecategory.save();
 
     if (!guardar) {
        return res.status(409).json({ error: "Ocurrio un error al registrar el usuario" });
     }
-       return res.status(201).json(guardar);
+       return res.status(201).json({ status: "ok "});
 
   } catch (error) {
     debug({ error });
@@ -68,6 +80,7 @@ controller.registerClient = async (req, res) => {
       gender: gender,
       email: email,
       password: password,
+      id_rol: "637d209b43311e1bfa18b7b0"
     });
     
     const guardar = await newUser.save();

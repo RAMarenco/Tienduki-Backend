@@ -1,5 +1,6 @@
 const {Users} = require("../model/user.model");
 const StoreCategory = require("../model/storeCategory.model");
+const StoreCategorie = require("../model/storeCategorie.model");
 const debug = require("debug")("app:mongoose");
 
 const controller = {};
@@ -101,6 +102,20 @@ controller.delete = async (req, res) => {
 
     try {
         const { identifier } = req.params;
+
+        const buscar = await StoreCategorie.findOne({id_store: identifier});
+
+
+        let deleteUserStoreCategory = await StoreCategory.findOneAndUpdate(
+            { _id: buscar.id_store_category },
+            {
+                $pull: {
+                    stores: identifier
+                }
+            }
+        )
+
+        await deleteUserStoreCategory.save();
 
         const user = await Users.findByIdAndDelete( identifier );
 

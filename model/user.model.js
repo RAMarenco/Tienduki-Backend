@@ -52,8 +52,7 @@ const userSchema = new Schema({
     }],
     id_rol: {
         type: Schema.Types.ObjectId,
-        ref: "Rol",
-        default: "637d209b43311e1bfa18b7b0"
+        ref: "Rol"
     },
     visible: {
         type: Boolean,
